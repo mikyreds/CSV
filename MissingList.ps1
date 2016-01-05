@@ -21,13 +21,16 @@ $Date2 = Get-Date -UFormat "%d%m%Y"
 
 #$Pullfile = "C:\MXF\pull-list.csv"
 $Pullfile = $InputFile
-$Missingfile = ".\BikeChannel_missing_$Date2.csv"
+$workingPath = Get-Location
+$Missingfile = $workingPath.ToString() + "\BikeChannel_missing_$Date2.csv"
 
 while (Test-Path $Missingfile)
 {
 		$fileCounter++
-		$Missingfile = ".\BikeChannel_missing_$Date2-$fileCounter.csv"
+		#$Missingfile = "C:\MyScript\BikeChannel_missing_$Date2-$fileCounter.csv"
+		$Missingfile = $workingPath.ToString() + "\BikeChannel_missing_$Date2-$fileCounter.csv"
 }
+$writer = [system.io.file]::CreateText($Missingfile)
 
 
 $records = import-csv $Pullfile
@@ -61,10 +64,15 @@ ForEach ($record in $records)
 	{
   	$myTxDate = Get-Date $txDate -Format "dd/MM/yyyy"
   	Write-Host $trafficIDClock","$Name","$myTxDate
-		Add-content $Missingfile $Clock","$Name","$myTxDate
+  	$myString = "$Clock,$Name,$myTxDate"
+		#Add-content $Missingfile $myString -nonewline
+		$writer.WriteLine($myString)
 		$MissingFiles++
 	}
 }
+
+$writer.Close()
+
 Write-Host
 Write-Host
 Write-Host "-------------------------------------"
