@@ -81,5 +81,14 @@ Write-Host $righe "Records analyzed"
 Write-Host "Found" $FoundFiles "files"
 Write-Host $MissingFiles "files are missing!!!"
 Write-Host $FilesInSecondPath "are in secondary path only!!!"
-Write-Host "Generated missing list file" $Missingfile
+if ($MissingFiles -eq 0)
+{
+	Write-Host "ALL FILES ARE PRESENT!!!!"
+	Write-Host "NO missing list file is created !!!"
+}
+else
+{
+	Write-Host "Generated missing list file" $Missingfile
+}
+
 Write-Host "-------------------------------------"
