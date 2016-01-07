@@ -10,17 +10,25 @@ exit
 }
 
 $FoundRecords = 0
+$FoundSpot = 0
 
 $AsRunFile = $InputFile
 
 $Date = Get-Date -UFormat "%Y%m%d%H%M%S"
 $Date2 = Get-Date -UFormat "%H%M%S"
+$Date3 = Get-Date -UFormat "%d%m%Y"
 
-$Asfile = "C:\MXF\AS_Run_$Date"
+$AsRunFileOutput = ".\BikeChannel_ASRun_$Date3.txt"
+
+while (Test-Path $AsRunFileOutput)
+{
+		$fileCounter++
+		$AsRunFileOutput = ".\BikeChannel_ASRun_$Date3-$fileCounter.txt"
+}
 
 if($oldLogs)
 {
-	$header = "Time","Date","XXX","Title","ClockID","Duration"
+	$header = "Time","Date","XXX","Title","YYY","Duration","ZZZ","ClockID"
 	$records = import-csv -Delimiter "`t" -Header $header $AsRunFile
 }
 else
@@ -38,12 +46,15 @@ $myNewDate = ($myDate)-replace "/",""
 $myNewDateDD = $myNewDate.substring(0,4)
 $myNewDateYY = $myNewDate.substring(6,2)	
 	
-Add-Content $Asfile $Date2'00SMSPOSTED 001 '
+Add-Content $AsRunFileOutput $Date2'00SMSPOSTED 001 '
 #Add-Content $Asfile $Date2'01BIKE'$myNewDatdTrimmed
-Add-Content $Asfile $Date2'01BIKE'$myNewDateDD$myNewDateYY
+Add-Content $AsRunFileOutput $Date2'01BIKE'$myNewDateDD$myNewDateYY
+
+Write-Host ''
 
 ForEach ($record in $records)
 {
+	
 	if ($oldLogs -or ($record.START -eq "START"))
 	{
 		$FoundRecords++
@@ -79,30 +90,37 @@ ForEach ($record in $records)
 		{
 				$myDuration = $record.DurationSeconds
 		}
-
-		$myTime = $myTime -replace ':',''
-		$myTime = $myTime.Substring(0,6)
+		
+		if($clock)
+		{
+			$FoundSpot++
+			$myNewTime = $myTime -replace ':',''
+			$myNewTime = $myNewTime.Substring(0,6)
+			
+			$myClock = $clock -replace '-','/'
 	
-		$clock = 'SSC-KFDG006-03'
-		$myClock = $clock -replace '-','/'
-	
-		#Write-Host $myTime'03    0000000000000'$myStringDuration$myClock
-		Add-Content $Asfile $myTime'03    0000000000000'$myStringDuration$myClock
+			Write-Host $myClock "Spot aired at" $myTime "with total secod duration of" $myStringDuration
+			Add-Content $AsRunFileOutput $myNewTime'03    0000000000000'$myStringDuration$myClock
+		}
 	}
 }
 
 
 #Write footer
-$StringFoundRecords = $FoundRecords.ToString("000000")
+$StringFoundRecords = $FoundSpot.ToString("000000")
 $myTempString = '99999998'
-Add-Content $Asfile $myTempString$StringFoundRecords
+Add-Content $AsRunFileOutput $myTempString$StringFoundRecords
 
-$FoundRecords = ($FoundRecords + 2)
+$FoundSpot = ($FoundSpot + 2)
 $myTempString = '99999999'
-$StringFoundRecords = $FoundRecords.ToString("000000")
-Add-Content $Asfile $myTempString$StringFoundRecords
+$StringFoundRecords = $FoundSpot.ToString("000000")
+Add-Content $AsRunFileOutput $myTempString$StringFoundRecords
 
 
 #------------- Report -------------#
+Write-Host ''
 Write-Host 'AsRun file contains:' $righe 'rows'
 Write-Host $FoundRecords 'usefull record found'
+Write-Host ($FoundSpot - 2) 'spot record found'
+Write-Host ''
+Write-Host 'AsRun log created' $AsRunFileOutput
