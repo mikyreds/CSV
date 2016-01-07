@@ -31,7 +31,7 @@ while (Test-Path $Missingfile)
 		$Missingfile = $workingPath.ToString() + "\BikeChannel_missing_$Date2-$fileCounter.csv"
 }
 $writer = [system.io.file]::CreateText($Missingfile)
-
+$writer.NewLine = "`n"
 
 $records = import-csv $Pullfile
 
