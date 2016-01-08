@@ -1,0 +1,4 @@
+# Blacklist everything
+*
+# Whitelist Powershell
+!*.ps1 
